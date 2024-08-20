@@ -69,16 +69,22 @@ func NewRegistry(config *Config) (Registry, error) {
 		config, _ = NewConfig("", nil, nil)
 	}
 
-	newWriter, err := writer.NewWriter(config.location, config.log)
-	if err != nil {
-		return nil, err
+	var w writer.Writer
+	if config.location == "custom" {
+		w = config.writer
+	} else {
+		ww, err := writer.NewWriter(config.location, config.log)
+		if err != nil {
+			return nil, err
+		}
+		w = ww
 	}
 
 	config.log.Infof("Create Registry with extra commonTags=%v", config.commonTags)
 
 	r := &spectatordRegistry{
 		config: config,
-		writer: newWriter,
+		writer: w,
 		logger: config.log,
 	}
 

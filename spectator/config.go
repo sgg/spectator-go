@@ -12,6 +12,7 @@ type Config struct {
 	location   string
 	commonTags map[string]string
 	log        logger.Logger
+	writer     writer.Writer
 }
 
 // NewConfig creates a new configuration with the provided location, extra common tags, and logger. All fields are
@@ -36,6 +37,7 @@ func NewConfig(
 	location string, // defaults to `udp`
 	commonTags map[string]string, // defaults to empty map
 	log logger.Logger, // defaults to default logger
+	opts ...Option,
 ) (*Config, error) {
 	location, err := calculateLocation(location)
 	if err != nil {
@@ -46,11 +48,17 @@ func NewConfig(
 
 	lg := calculateLogger(log)
 
-	return &Config{
+	conf := &Config{
 		location:   location,
 		commonTags: mergedTags,
 		log:        lg,
-	}, nil
+	}
+
+	for _, opt := range opts {
+		opt.apply(conf)
+	}
+
+	return conf, nil
 }
 
 func calculateLogger(log logger.Logger) logger.Logger {
